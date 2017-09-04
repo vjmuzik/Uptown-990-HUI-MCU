@@ -1,0 +1,119 @@
+21 byte message is written to driver boards
+20 byte message is read from driver boards
+Micro controller used is a Teensy-LC: https://www.pjrc.com/teensy/teensyLC.html
+My system only has Automated Faders and Mutes if you have more on yours everything I've written may not work completely
+Must have Teensyduino installed for this code to work: https://www.pjrc.com/teensy/teensyduino.html
+This has only been tested on MacOS, but there shouldn't be problems for Windows
+
+	***If text file format seems off***
+	***    Stretch it real wide     ***
+	***   Use a fixed-width font    ***
+	***   Use a smaller font size   ***
+
+
+
+I only designed it to communicate with one driver board but you could extend it for all of them, but a faster micro controller would probably be needed, I just wanted to keep the 
+usb midi simple and just have one per 8 channels similar to real Mackie HUI/MCU mixers
+
+I did not implement the entirety of the systest program only enough for initial tests and the rest of my code is just to communicate HUI/MCU to the driver boards
+My code communicates HUI and MCU at the same time so there is no option to choose either one or switch them as they run at the same time, from my tests it doesn't seem to cause any 
+lag by communicating them both at the same time, just don't try to use them both in a DAW, pick one or the other when you setup the device
+
+In order to read information from the driver boards you have to write to the board first and wait 30ms before you can read the updated information and you repeat as fast as you can
+Any less than 30ms after writing and there's not enough delay for all the channels to update on the driver board.
+
+The i2c address of all the driver boards appears to be 0x40, but it could be different as it seems you are able to change it based on the systest.exe program
+To change the mode of the driver board you send the mode as a two byte message EX: 0x40 0x80 0x80
+
+Fader is a 10 bit number 
+This is what is written to the driver boards for position
+
+Channel numbers might be backwards but this is how it was send and read from my boards, as 8-1 instead of 1-8
+
+Byte 1		0x60	0x80	0x90	0x33	0x64	0x60	0xB0				Seems to only write faders on 0x80 and 0x90
+Byte 2		0x60	0x80?	0x90?		0x64						0x80 seems to move fader and not stop if it's touched after it starts moving
+		0x08	0x08	0x08		0x08	0x08 	0x08				0x90 seems to be the run time number
+												0xB0 seems to be sent when you close the program and for button/led test
+												Other values don't appear to have an effect, but I haven't tested them extensively
+												0x60 doesn't update board and only seems to read them
+Byte 3		Fader 8 MSB bits 10-3	Hex number needs bit shifted to the right 2 times if 10 bit number is being written to boards
+Byte 4		Fader 7 MSB bits 10-3	Hex number needs bit shifted to the right 2 times if 10 bit number is being written to boards
+Byte 5		Fader 6 MSB bits 10-3	Hex number needs bit shifted to the right 2 times if 10 bit number is being written to boards
+Byte 6		Fader 5 MSB bits 10-3	Hex number needs bit shifted to the right 2 times if 10 bit number is being written to boards
+Byte 7		Fader 4 MSB bits 10-3	Hex number needs bit shifted to the right 2 times if 10 bit number is being written to boards
+Byte 8		Fader 3 MSB bits 10-3	Hex number needs bit shifted to the right 2 times if 10 bit number is being written to boards
+Byte 9		Fader 2 MSB bits 10-3	Hex number needs bit shifted to the right 2 times if 10 bit number is being written to boards
+Byte 10		Fader 1 MSB bits 10-3	Hex number needs bit shifted to the right 2 times if 10 bit number is being written to boards
+Byte 11		Mute 8	Send 0x01 to activate
+Byte 12		Mute 7  Send 0x01 to activate
+Byte 13		Mute 6  Send 0x01 to activate
+Byte 14		Mute 5  Send 0x01 to activate
+Byte 15		Mute 4  Send 0x01 to activate
+Byte 16		Mute 3  Send 0x01 to activate
+Byte 17		Mute 2  Send 0x01 to activate
+Byte 18		Mute 1  Send 0x01 to activate
+Byte 19								Doesn't seem to do anything on my system, it's always 0x00
+Byte 20		Fader 8 LSB bits 2-1    EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11 11  11[11]	MSB first
+		Fader 7 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3     11 11 [11]11 	MSB first
+		Fader 6 LSB bits 2-1	EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11[11] 11 11 	MSB first
+		Fader 5 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3    [11]11  11 11 	MSB first
+Byte 21		Fader 4 LSB bits 2-1    EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11 11  11[11]	MSB first
+		Fader 3 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3     11 11 [11]11 	MSB first
+		Fader 2 LSB bits 2-1	EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11[11] 11 11 	MSB first
+		Fader 1 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3    [11]11  11 11 	MSB first
+
+
+
+Byte 1		0xB0
+Byte 2		0x08
+Byte 3				In 0xB0 mode the fader MSB bytes seem to report touch sense instead of fader
+Byte 4				Buttons test isn't fully implemented in my code
+Byte 5		
+Byte 6		
+Byte 7		
+Byte 8		
+Byte 9		
+Byte 10		
+Byte 11		
+Byte 12		
+Byte 13		
+Byte 14		
+Byte 15		
+Byte 16		
+Byte 17		
+Byte 18		
+Byte 19			
+Byte 20		
+Byte 21		
+
+
+This is the read information				All bytes are MSB first
+Byte 1		Fader 8 MSB bits 10-3
+Byte 2		Fader 7 MSB bits 10-3
+Byte 3		Fader 6 MSB bits 10-3
+Byte 4		Fader 5 MSB bits 10-3
+Byte 5		Fader 4 MSB bits 10-3
+Byte 6		Fader 3 MSB bits 10-3
+Byte 7		Fader 2 MSB bits 10-3
+Byte 8		Fader 1 MSB bits 10-3
+Byte 9		Mute 8	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
+Byte 10		Mute 7	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
+Byte 11		Mute 6	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
+Byte 12		Mute 5	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
+Byte 13		Mute 4	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
+Byte 14		Mute 3	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
+Byte 15		Mute 2	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
+Byte 16		Mute 1	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
+Byte 17		Never sends anything but 0x00 on my system
+Byte 18		Fader 8 LSB bits 2-1    EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11 11  11[11]	MSB first
+		Fader 7 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3     11 11 [11]11 	MSB first
+		Fader 6 LSB bits 2-1	EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11[11] 11 11 	MSB first
+		Fader 5 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3    [11]11  11 11 	MSB first
+Byte 19		Fader 4 LSB bits 2-1    EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11 11  11[11]	MSB first
+		Fader 3 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3     11 11 [11]11 	MSB first
+		Fader 2 LSB bits 2-1	EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11[11] 11 11 	MSB first
+		Fader 1 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3    [11]11  11 11 	MSB first
+Byte 20		Touch sense 1-8		 1 bit each	MSB is 1, LSB is 8	This is also the touch sense but I use the ones from the mute bytes
+
+
+
