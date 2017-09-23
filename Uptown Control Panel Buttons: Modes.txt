@@ -1,0 +1,47 @@
+14.7ms after switching it reads then writes again
+Only sends 2 bytes to the driver board
+
+0xE0  Write On
+0xE0
+
+0xE1  Touch On
+0xE1
+
+0xE2  Touch Off
+0xE2
+
+0x33  Hold Off
+0x33
+
+0x34  Hold On
+0x34
+
+0xF0  Manual On
+0xF0
+
+0x20  Auto On	Possibly Ready Off
+0x20
+
+0x90  Ready On
+0x90
+
+0x10  Invert On	Then sends Hold Off
+0x10
+
+0x11  Invert Off
+0x11
+
+1st Byte written to board
+		B00000010 when switch 2 on
+		B00000001 when switch 1 on
+		B00000000 when both off
+
+This is byte 17 of read byte from driver board
+1 is hold	B10000000
+2 is touch	B01000000
+3 is write	B00100000
+4 is ready	B00010000
+5 is auto	B00001000
+6 is manual	B00000100
+7 is S2		B00000010
+8 is S1		B00000001

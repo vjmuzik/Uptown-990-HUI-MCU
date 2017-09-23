@@ -104,7 +104,7 @@ Byte 13		Mute 4	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0
 Byte 14		Mute 3	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
 Byte 15		Mute 2	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
 Byte 16		Mute 1	0x10 is 1st push then 0x08 on release	2nd is 0x08 on push then 0x10 on release  Otherwise 0x00 is sent  6th bit is touch sense EX: 0x30 or 0x28 or 0x20
-Byte 17		Never sends anything but 0x00 on my system
+Byte 17		Control Panel Button Byte
 Byte 18		Fader 8 LSB bits 2-1    EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11 11  11[11]	MSB first
 		Fader 7 LSB bits 2-1	EX: 0xFF   Bit 4-3 is bit 2-1	Max value of 3     11 11 [11]11 	MSB first
 		Fader 6 LSB bits 2-1	EX: 0xFF   Bit 2-1 is bit 2-1	Max value of 3     11[11] 11 11 	MSB first
