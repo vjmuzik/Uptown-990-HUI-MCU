@@ -39,6 +39,7 @@ Microcontroller: [Teensy LC](https://www.adafruit.com/product/2419)
 Level Shifter: [4-channel I2C-safe Bi-directional Logic Level Converter](https://www.adafruit.com/product/757)
 
 1 Microcontroller per driver board
+
 1 Level Shifter per DE-9 cable
 
 
