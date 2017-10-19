@@ -284,7 +284,7 @@ void uptRunMode() {
 
 void uptReadFrom() {
 //  Serial.println("Uptown Reading From");
-  if!(Wire.requestFrom(uptown, uptReadLen)){   //Gets current data from driver board
+  if(!Wire.requestFrom(uptown, uptReadLen)){   //Gets current data from driver board
     hwInit();
   }
   for (int d = 0; d < uptReadLen; d++) {
