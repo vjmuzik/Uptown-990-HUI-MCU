@@ -168,6 +168,9 @@ void hwInit() {
   Wire.requestFrom(uptown, 2);          //Request 2 bytes, 1st byte is revision number, 2nd is number of faders
   if (Wire.getError() != 0) {           //See if there's an error
     Serial.println("Failed to find system");
+    delay(1000);
+    Serial.println("Searching again...");
+    hwInit();
   }
   else {
     revNum = Wire.readByte();           //Read revision number from buffer
@@ -281,7 +284,9 @@ void uptRunMode() {
 
 void uptReadFrom() {
 //  Serial.println("Uptown Reading From");
-  Wire.requestFrom(uptown, uptReadLen);   //Gets current data from driver board
+  if!(Wire.requestFrom(uptown, uptReadLen)){   //Gets current data from driver board
+    hwInit();
+  }
   for (int d = 0; d < uptReadLen; d++) {
     uptRead[d] = Wire.readByte();
 //    Serial.print(uptRead[d], HEX);
@@ -1027,7 +1032,7 @@ void OnPitchChange(uint8_t channel, int pitch) {
   uptFaderWrite[channel - 1] = pitch;
 }
 
-void OnSysEx(const unsigned char* sxdata, short unsigned int sxlength, bool sx_comp) {
+void OnSysEx(const uint8_t *sxdata, uint16_t sxlength, bool sx_comp) {
   
 }
 
