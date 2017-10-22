@@ -3,6 +3,8 @@
 #define uptown 0x40            //Uptown 990 Driver Board i2c address (Might be different for others, all mine are 0x40)
 #define allCall 0x00           //i2c all call address  (probably not needed but it seems to be apart of the initialization process)
 
+//#define muteFlip   //Uncomment to flip mutes
+
 #define uptReadLen 20          //Number of bytes to read from uptown driver board
 #define uptWriteLen 21         //Number of bytes to write to uptown driver board
 uint8_t uptCurrentMode;         //0 = manual, 1 = auto, 2 = ready, 3 = write  Not used
@@ -16,6 +18,12 @@ uint16_t uptFaderWrite[8];        //Buffer for written fader positions
 uint8_t uptButtonWrite[8];        //Buffer for written button states
 uint8_t zoneSelect = 0;          //Changes with HUI/MCU message zone select
 const uint8_t muteAddress[8] = {17, 16, 15, 14, 13, 12, 11, 10};      //Address for mute change in the write message
+#ifndef muteFlip
+const uint8_t muteReadAddress[8] = {15, 14, 13, 12, 11, 10, 9, 8};      //Address for mute change in the read message
+#endif
+#ifdef muteFlip
+const uint8_t muteReadAddress[8] = {8, 9, 10, 11, 12, 13, 14, 15};      //Uncomment this if your mute buttons are read backwards
+#endif
 const uint8_t faderMSBAddress[8] = {9, 8, 7, 6, 5, 4, 3, 2};         //Address for fader MSB change
 const uint8_t faderLSBPosition[8] = {6, 4, 2, 0, 6, 4, 2, 0};
 const uint8_t faderLSBAddress[8] = {20, 20, 20, 20, 19, 19, 19, 19};
@@ -39,7 +47,7 @@ void setup() {
 
   Serial.begin(115200);
   hwInit();
-  uptRunMode();
+  
   usbMIDI.setHandleNoteOn(OnNoteOn);
   usbMIDI.setHandleNoteOff(OnNoteOff);
   usbMIDI.setHandleControlChange(OnControlChange);
@@ -171,6 +179,7 @@ void hwInit() {
     delay(1000);
     Serial.println("Searching again...");
     hwInit();
+    
   }
   else {
     revNum = Wire.readByte();           //Read revision number from buffer
@@ -259,6 +268,8 @@ void hwInit() {
     delay(30);
     uptReadFrom();                              //After read mode it gets current data
     Serial.println("Done...");
+    uptRunMode();
+    driverIO = 0;
   }
 
 }
@@ -825,7 +836,7 @@ void uptSetupWriteButtons() {
 
 void uptSetupReadButtons() {
   for(int c = 0; c < 8; c++) {
-    uptButtonRead[c] = uptRead[muteAddress[c] - 2];
+    uptButtonRead[c] = uptRead[muteReadAddress[c]];
     uptTouchRead[c] = uptButtonRead[c] >> 5;
     uptControlPanelRead[c] = (uptRead[16] >> c) & 0x01;
     uptButtonRead[c] = uptButtonRead[c] & 0x1F;
