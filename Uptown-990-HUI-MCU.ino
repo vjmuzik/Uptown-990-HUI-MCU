@@ -4,6 +4,9 @@
 #define allCall 0x00           //i2c all call address  (probably not needed but it seems to be apart of the initialization process)
 
 //#define muteFlip   //Uncomment to flip mutes
+//#define muteLEDFlip   //Uncomment to flip mute LEDs
+//#define touchFlip   //Uncomment to flip touch sense
+//#define controlPanelDelay  20  //Uncomment to add a delay if global automation change isn't working
 
 #define uptReadLen 20          //Number of bytes to read from uptown driver board
 #define uptWriteLen 21         //Number of bytes to write to uptown driver board
@@ -17,12 +20,23 @@ uint8_t uptTouchRead[8];          //Buffer for read touch states
 uint16_t uptFaderWrite[8];        //Buffer for written fader positions
 uint8_t uptButtonWrite[8];        //Buffer for written button states
 uint8_t zoneSelect = 0;          //Changes with HUI/MCU message zone select
+#ifndef muteLEDFlip
 const uint8_t muteAddress[8] = {17, 16, 15, 14, 13, 12, 11, 10};      //Address for mute change in the write message
+#endif
+#ifdef muteLEDFlip
+const uint8_t muteAddress[8] = {10, 11, 12, 13, 14, 15, 16, 17};      //Address for mute change in the write message
+#endif
 #ifndef muteFlip
 const uint8_t muteReadAddress[8] = {15, 14, 13, 12, 11, 10, 9, 8};      //Address for mute change in the read message
 #endif
 #ifdef muteFlip
 const uint8_t muteReadAddress[8] = {8, 9, 10, 11, 12, 13, 14, 15};      //Uncomment this if your mute buttons are read backwards
+#endif
+#ifndef touchFlip
+const uint8_t touchReadAddress[8] = {15, 14, 13, 12, 11, 10, 9, 8};      //Address for mute change in the read message
+#endif
+#ifdef touchFlip
+const uint8_t touchReadAddress[8] = {8, 9, 10, 11, 12, 13, 14, 15};      //Uncomment this if your mute buttons are read backwards
 #endif
 const uint8_t faderMSBAddress[8] = {9, 8, 7, 6, 5, 4, 3, 2};         //Address for fader MSB change
 const uint8_t faderLSBPosition[8] = {6, 4, 2, 0, 6, 4, 2, 0};
@@ -837,7 +851,7 @@ void uptSetupWriteButtons() {
 void uptSetupReadButtons() {
   for(int c = 0; c < 8; c++) {
     uptButtonRead[c] = uptRead[muteReadAddress[c]];
-    uptTouchRead[c] = uptButtonRead[c] >> 5;
+    uptTouchRead[c] = uptRead[touchReadAddress[c]] >> 5;
     uptControlPanelRead[c] = (uptRead[16] >> c) & 0x01;
     uptButtonRead[c] = uptButtonRead[c] & 0x1F;
     if(uptButtonRead[c] != muteLastState[c]) {
@@ -845,6 +859,9 @@ void uptSetupReadButtons() {
         usbMIDI.sendControlChange(0x0F, c, 1);
         usbMIDI.sendControlChange(0x2F, 0x40 | 0x02, 1);
         usbMIDI.sendNoteOn(0x10 | c, 0x7f, 1);
+#ifdef controlPanelDelay
+        delay(controlPanelDelay);
+#endif
       }
       else if((uptButtonRead[c] == 0x10 && muteLastState[c] == 0x08) | (uptButtonRead[c] == 0x08 && muteLastState[c] == 0x10)) {
         usbMIDI.sendControlChange(0x0F, c, 1);
